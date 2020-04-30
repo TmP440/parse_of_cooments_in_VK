@@ -1,0 +1,105 @@
+from selenium import webdriver
+import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+
+
+class VK():
+    text = []                                               # here will be our links
+    links = ['https://vk.com/gorillabot', 'https://vk.com/dgbot']
+
+    def __init__(self):
+        self.driver = webdriver.Chrome()
+
+    def driver_server(self, dl):                            # open browser
+        self.driver.maximize_window() 
+        self.driver.get(dl)
+
+    def end(self):                                          # close browser
+        self.driver.close()
+        print('Выхожу из соц.сети "ВК".')
+
+    def append_group(self, sp):
+        self.text.extend(sp)
+
+    def close_stpd_btn(self):
+        try:
+            self.driver.find_element_by_class_name('CovidBanner__close').click()
+        except:
+            pass
+
+    def scroll(self, b):
+        for i in range(b):
+            self.driver.find_element_by_tag_name('body').send_keys(Keys.END)  # Use send_keys(Keys.HOME)
+
+    def glv(self):
+        wall_post = self.driver.find_element_by_id('page_wall_posts')
+        a = wall_post.find_elements_by_class_name('wall_reply_text')
+        for j in a:
+            text1 = j.text
+            for word in text1.split():
+                if 'vk.me/join/' in word:
+                    new_word = word
+                    if new_word in self.text:
+                        continue
+                    else:
+                        self.text.append(word)
+            else:
+                continue
+
+    def btn(self, i):
+        try:
+            wall_post2 = i.find_element_by_css_selector('a.replies_next_main')
+            wall_post2.click()
+            time.sleep(2)
+        except:
+            pass
+
+    def my_hope(self, l):
+        for i in range(l):
+            wall_post = self.driver.find_element_by_id('page_wall_posts')
+            wall_post1 = wall_post.find_elements_by_xpath('./div')
+            for p in wall_post1:
+                self.btn(p)
+
+    def filter_and_save(self):
+        file = open('for_Vlad.txt')
+        a = file.read()
+        file.close()
+        file = open('for_Vlad.txt', 'a+')
+        # file1 = open('for_Vlad.txt')
+        for i in self.text:
+            start = i.find('/vk.me/join/')
+            clear_word = i[start + 11:start + 36]
+            if clear_word not in a and '�' not in clear_word:
+                file.write(clear_word + '\n')
+        file.close()
+
+    def main(self, a, b):
+        for dl in range(len(self.links)):
+            e = self.links[dl]
+            self.driver_server(e)
+            time.sleep(5)
+            self.close_stpd_btn()
+            time.sleep(1)
+            self.scroll(b)
+            time.sleep(2)
+            self.my_hope(a)
+            time.sleep(2)
+            self.glv()
+            time.sleep(3)
+            self.filter_and_save()
+            time.sleep(2)
+            time.sleep(1)
+        self.end()
+
+
+a = int(input('Сколько раз нажать на "Показать Следующие Комментарии" >> '))
+b = int(input('Сколько раз скроллить вниз? >>'))
+q = input('Добавить группу? (+ или -) >> ')
+vk = VK()
+if q.lower() == 'да' or q.lower() == '+':
+    groups = input('Пишите через пробел ссылки на группы с "https://"!!! >> ').split()
+    vk.append_group(groups)
+vk = VK()
+vk.main(a, b)
